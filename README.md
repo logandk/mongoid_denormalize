@@ -25,8 +25,7 @@ In your model:
     include Mongoid::Denormalize
     
     # Define your denormalized fields
-    denormalize :title, :from => :post
-    denormalize :name, :avatar, :from => :user
+    denormalize :name, :email, :from => :user
 
 
 
@@ -37,61 +36,54 @@ Example
       include Mongoid::Document
       include Mongoid::Denormalize
 
-      references_many :posts
+      references_many :comments
 
       field :name
-      field :avatar
+      field :email
+      
+      denormalize :name, :email, :to => :comments
     end
     
-    def Post
+    def Comment
       include Mongoid::Document
       include Mongoid::Denormalize
 
       referenced_in :user
 
-      field :title
-      denormalize :name, :avatar, :from => :user
+      field :body
+      
+      denormalize :name, :email, :from => :user
     end
     
-    >> user = User.create(:name => "John Doe", :avatar => "http://url/to/avatar.png")
-    >> post = Post.create(:title => "Blog post", :user => user)
-    >> post.user_name
+    >> user = User.create(:name => "John Doe", :email => "john@doe.com")
+    >> comment = Comment.create(:body => "Lorem ipsum...", :user => user)
+    >> user.comments << comment
+    >> comment.user_name
     "John Doe"
-    >> post.user_avatar
-    "http://url/to/avatar.png"
+    >> comment.user_email
+    "john@doe.com"
     >> user.update_attributes(:name => "Bill")
-    >> post.save
-    >> post.user_name
+    >> comment.user_name
     "Bill"
 
 
 Options
 -------
 
-Denormalization can happen using an associated object as illustrated above, or using a block. The field type for denormalized fields must
-be explicitly set if it is not a `String` value. Examples:
+Denormalization can happen in either or both directions. When using the `:from` option, the associated objects will fetch the values from
+the parent. When using the `:to` option, the parent will push the values to its children.
 
-    # Basic denormalization. Will set the user_name attribute with the user name.
+    # Basic denormalization. Will set the user_name attribute with the associated user's name.
     denormalize :name, :from => :user
     
-    # Override denormalized field name. Will set the from_email attribute with the user email.
-    denormalize :email, :from => :user, :to => :from_email
+    # Basic denormalization. Will set the user_name attribute of "self.comments" with "self.name".
+    denormalize :name, :to => :comments
     
-    # Specify denormalized field type. Will set the post_created_at attribute as a Time object.
-    denormalize :created_at, :type => Time, :from => :post
-    
-    # Multiple denormalization fields. Will set the user_name and user_email attributes with values from user.
+    # Multiple fields. Will set the user_name and user_email attributes with the associated user's name and email.
     denormalize :name, :email, :from => :user
     
-    # Block denormalization. Will set the comment_count attribute with the blocks return value.
-    # The block receives the current instance as the first argument.
-    denormalize(:comment_count, :type => Integer) { |post| post.comments.count }
-    
-    # Block denormalization with multiple fields. Will set the post_titles and post_dates attributes with the blocks return value.
-    # The block receives the current instance as the first argument and the name of the denormalized field as the second argument.
-    denormalize :post_titles, :post_dates, :type => Array do |user, field|
-      field == :post_titles ? user.posts.collect(&:title) : user.posts.collect(&:created_at)
-    end
+    # Multiple children. Will set the user_name attribute of "self.posts" and "self.comments" with "self.name".
+    denormalize :name, :to => [:posts, :comments]
 
 
 Credits

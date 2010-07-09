@@ -4,10 +4,10 @@ class Comment
   
   field :body
   
-  referenced_in :post
+  embedded_in :post, :inverse_of => :comments
   referenced_in :user
   
   denormalize :name, :from => :user
-  denormalize :email, :from => :user, :to => :from_email
+  denormalize :email, :from => :user
   denormalize :created_at, :type => Time, :from => :post
 end

@@ -7,8 +7,8 @@ class Post
   field :created_at, :type => Time
   
   referenced_in :user
-  references_many :comments
+  embeds_many :comments
   
   denormalize :name, :email, :from => :user
-  denormalize(:comment_count, :type => Integer) { |post| post.comments.count }
+  denormalize :created_at, :to => :comments
 end

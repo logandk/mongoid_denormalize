@@ -6,21 +6,19 @@ describe Mongoid::Denormalize do
       c.drop rescue nil
     end
     
-    @user = User.create!(:name => "John Doe", :email => "john@doe.com")
-    @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"), :user => @user)
-    @comment = Comment.create!(:body => "This is the comment", :post => @post, :user => @user)
+    @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
+    @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post)
+    @comment = @post.comments.create(:body => "This is the comment", :user => @user)
     
-    @other_user = User.create!(:name => "Bill", :email => "bill@doe.com")
+    @user.comments << @comment
+    
+    @other_user = User.create!(:name => "Bill")
   end
 
-  context "denormalize associated object" do
+  context "denormalize from" do
     it "should define multiple fields for association" do
       @post.fields.should have_key "user_name"
       @post.fields.should have_key "user_email"
-    end
-    
-    it "should override the name of the denormalized field" do
-      @comment.fields.should have_key "from_email"
     end
     
     it "should default to string field type for associated fields" do
@@ -33,12 +31,12 @@ describe Mongoid::Denormalize do
     
     it "should allow multiple declarations for the same association" do
       @comment.fields.should have_key "user_name"
-      @comment.fields.should have_key "from_email"
+      @comment.fields.should have_key "user_email"
     end
     
     it "should denormalize fields without specified type" do
       @comment.user_name.should eql @user.name
-      @comment.from_email.should eql @user.email
+      @comment.user_email.should eql @user.email
       @post.user_name.should eql @user.name
       @post.user_email.should eql @user.email
     end
@@ -47,50 +45,36 @@ describe Mongoid::Denormalize do
       @comment.post_created_at.should eql @post.created_at
     end
     
-    it "should update denormalized values if changed" do
+    it "should update denormalized values if attribute is changed" do
+      @user.update_attributes(:name => "Bob Doe")
+      
+      @comment.user_name.should eql @user.name
+    end
+    
+    it "should update denormalized values if object is changed" do
       @other_user = User.create!(:name => "Bill", :email => "bill@doe.com")
       
       @comment.user = @other_user
       @comment.save!
       
       @comment.user_name.should eql @other_user.name
-      @comment.from_email.should eql @other_user.email
+      @comment.user_email.should eql @other_user.email
     end
   end
   
-  context "denormalization with block" do
-    it "should accept block for denormalization" do
-      @post.fields.should have_key "comment_count"
-    end
-    
-    it "should accept multiple fields for block" do
-      @user.fields.should have_key "post_titles"
-      @user.fields.should have_key "post_dates"
-    end
-    
-    it "should allow setting the field type" do
-      @user.fields["post_titles"].type.should eql Array
-      @post.fields["comment_count"].type.should eql Integer
-    end
-    
-    it "should denormalize fields using block" do
-      @post.save!
-      @post.comment_count.should eql 1
-      
+  context "denormalize to" do
+    it "should push denormalized fields to one-to-one association" do
+      @user.name = "Elvis"
       @user.save!
-      @user.post_titles.should eql ["Blog post"]
-      @user.post_dates.should eql [Time.parse("Jan 1 2010 12:00") + 300]
+      
+      @post.user_name.should eql "Elvis"
     end
     
-    it "should update denormalized values if changed" do
-      @post.user = @other_user
+    it "should push denormalized fields to one-to-many association" do
+      @post.created_at = Time.parse("Jan 1 2011 12:00")
       @post.save!
       
-      @user.save!
-      @other_user.save!
-      
-      @user.post_titles.should eql []
-      @other_user.post_titles.should eql ["Blog post"]
+      @comment.post_created_at.should eql Time.parse("Jan 1 2011 12:00")
     end
   end
 end

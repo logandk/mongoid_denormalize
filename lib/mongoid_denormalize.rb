@@ -6,10 +6,13 @@ module Mongoid::Denormalize
 
   included do
     cattr_accessor :denormalize_definitions
+    
+    before_save :denormalize_from
+    after_save :denormalize_to
   end
 
   module ClassMethods
-    # Set a field or a number of fields to denormalize. Specify the associated object using the :from option.
+    # Set a field or a number of fields to denormalize. Specify the associated object using the :from or :to options.
     #
     #   def Post
     #     include Mongoid::Document
@@ -19,43 +22,40 @@ module Mongoid::Denormalize
     #     references_many :comments
     #
     #     denormalize :name, :avatar, :from => :user
-    #
-    #     denormalize :email, :from => :user, :to => :from_email
-    #
-    #     denormalize :comment_count, :type => Integer do |post|
-    #       post.comments.count
-    #     end
+    #     denormalize :created_at, :to => :comments
     #   end
-    def denormalize(*fields, &block)
+    def denormalize(*fields)
       options = fields.pop
       
-      (self.denormalize_definitions ||= []) << { :fields => fields, :options => options, :block => block}
+      (self.denormalize_definitions ||= []) << { :fields => fields, :options => options }
 
       # Define schema
-      fields.each do |name|
-        denormalized_name = if block_given?
-          name
-        else
-          options[:to] ? options[:to] : "#{options[:from]}_#{name}"
-        end
-        
-        field denormalized_name, :type => options[:type]
+      unless options[:to]
+        fields.each { |name| field "#{options[:from]}_#{name}", :type => options[:type] }
       end
-      
-      before_validation :denormalize_fields
     end
   end
 
   private
-    def denormalize_fields
+    def denormalize_from
       self.denormalize_definitions.each do |definition|
-        definition[:fields].each do |name|
-          if definition[:block]
-            value = (definition[:fields].length > 1 ? definition[:block].call(self, name) : definition[:block].call(self))
-            self.send("#{name}=", value)
+        next if definition[:options][:to]
+        
+        definition[:fields].each { |name| self.send("#{definition[:options][:from]}_#{name}=", self.send(definition[:options][:from]).try(name)) }
+      end
+    end
+    
+    def denormalize_to
+      self.denormalize_definitions.each do |definition|
+        next unless definition[:options][:to]
+        
+        assigns = Hash[*definition[:fields].collect { |name| ["#{self.class.name.underscore}_#{name}", self.send(name)] }.flatten]
+        
+        [definition[:options][:to]].flatten.each do |association|
+          if [:embedded_in, :embeds_one, :referenced_in, :references_one].include? self.class.reflect_on_association(association)
+            self.send(association).update_attributes(assigns) unless self.send(association).blank?
           else
-            attribute_name = (definition[:options][:to] ? definition[:options][:to] : "#{definition[:options][:from]}_#{name}")
-            self.send("#{attribute_name}=", self.send(definition[:options][:from]).try(name))
+            self.send(association).to_a.each { |a| a.update_attributes(assigns) }
           end
         end
       end
