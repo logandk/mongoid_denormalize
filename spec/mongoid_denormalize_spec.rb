@@ -9,6 +9,8 @@ describe Mongoid::Denormalize do
     @user = User.create!(:name => "John Doe", :email => "john@doe.com")
     @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"), :user => @user)
     @comment = Comment.create!(:body => "This is the comment", :post => @post, :user => @user)
+    
+    @other_user = User.create!(:name => "Bill", :email => "bill@doe.com")
   end
 
   context "denormalize associated object" do
@@ -44,6 +46,16 @@ describe Mongoid::Denormalize do
     it "should denormalize fields with specified type" do
       @comment.post_created_at.should eql @post.created_at
     end
+    
+    it "should update denormalized values if changed" do
+      @other_user = User.create!(:name => "Bill", :email => "bill@doe.com")
+      
+      @comment.user = @other_user
+      @comment.save!
+      
+      @comment.user_name.should eql @other_user.name
+      @comment.from_email.should eql @other_user.email
+    end
   end
   
   context "denormalization with block" do
@@ -68,6 +80,17 @@ describe Mongoid::Denormalize do
       @user.save!
       @user.post_titles.should eql ["Blog post"]
       @user.post_dates.should eql [Time.parse("Jan 1 2010 12:00") + 300]
+    end
+    
+    it "should update denormalized values if changed" do
+      @post.user = @other_user
+      @post.save!
+      
+      @user.save!
+      @other_user.save!
+      
+      @user.post_titles.should eql []
+      @other_user.post_titles.should eql ["Blog post"]
     end
   end
 end

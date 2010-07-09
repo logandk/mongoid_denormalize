@@ -1,8 +1,6 @@
 # = Mongoid::Denormalize
 #
 # Helper module for denormalizing association attributes in Mongoid models.
-#
-# TODO: Add support for multiple denormalize definitions
 module Mongoid::Denormalize
   extend ActiveSupport::Concern
 
@@ -18,8 +16,15 @@ module Mongoid::Denormalize
     #     include Mongoid::Denormalize
     #
     #     referenced_in :user
+    #     references_many :comments
     #
     #     denormalize :name, :avatar, :from => :user
+    #
+    #     denormalize :email, :from => :user, :to => :from_email
+    #
+    #     denormalize :comment_count, :type => Integer do |post|
+    #       post.comments.count
+    #     end
     #   end
     def denormalize(*fields, &block)
       options = fields.pop

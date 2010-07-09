@@ -65,6 +65,35 @@ Example
     "Bill"
 
 
+Options
+-------
+
+Denormalization can happen using an associated object as illustrated above, or using a block. The field type for denormalized fields must
+be explicitly set if it is not a `String` value. Examples:
+
+    # Basic denormalization. Will set the user_name attribute with the user name.
+    denormalize :name, :from => :user
+    
+    # Override denormalized field name. Will set the from_email attribute with the user email.
+    denormalize :email, :from => :user, :to => :from_email
+    
+    # Specify denormalized field type. Will set the post_created_at attribute as a Time object.
+    denormalize :created_at, :type => Time, :from => :post
+    
+    # Multiple denormalization fields. Will set the user_name and user_email attributes with values from user.
+    denormalize :name, :email, :from => :user
+    
+    # Block denormalization. Will set the comment_count attribute with the blocks return value.
+    # The block receives the current instance as the first argument.
+    denormalize(:comment_count, :type => Integer) { |post| post.comments.count }
+    
+    # Block denormalization with multiple fields. Will set the post_titles and post_dates attributes with the blocks return value.
+    # The block receives the current instance as the first argument and the name of the denormalized field as the second argument.
+    denormalize :post_titles, :post_dates, :type => Array do |user, field|
+      field == :post_titles ? user.posts.collect(&:title) : user.posts.collect(&:created_at)
+    end
+
+
 Credits
 -------
 
