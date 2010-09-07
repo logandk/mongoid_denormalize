@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{mongoid_denormalize}
-  s.version = "0.1.0"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Logan Raarup"]
-  s.date = %q{2010-07-09}
+  s.date = %q{2010-09-07}
   s.description = %q{Helper module for denormalizing association attributes in Mongoid models.}
   s.email = %q{logan@logan.dk}
   s.extra_rdoc_files = [
@@ -19,17 +19,19 @@ Gem::Specification.new do |s|
   s.files = [
     "LICENSE",
      "README.md",
-     "lib/mongoid_denormalize.rb"
+     "lib/mongoid_denormalize.rb",
+     "lib/railties/denormalize.rake",
+     "lib/railties/railtie.rb"
   ]
   s.homepage = %q{http://github.com/logandk/mongoid_denormalize}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.7}
+  s.rubygems_version = %q{1.3.6}
   s.summary = %q{Mongoid denormalization helper.}
   s.test_files = [
-    "spec/models/comment.rb",
-     "spec/models/post.rb",
-     "spec/models/user.rb",
+    "spec/app/models/comment.rb",
+     "spec/app/models/post.rb",
+     "spec/app/models/user.rb",
      "spec/mongoid_denormalize_spec.rb",
      "spec/spec_helper.rb"
   ]
@@ -38,7 +40,7 @@ Gem::Specification.new do |s|
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<mongoid>, ["~> 2.0.0.beta9"])
     else
       s.add_dependency(%q<mongoid>, ["~> 2.0.0.beta9"])
