@@ -2,9 +2,7 @@ require "spec_helper"
 
 describe Mongoid::Denormalize do
   before(:all) do
-    Mongoid.master.collections.each do |c|
-      c.drop rescue nil
-    end
+    Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)
     
     @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
     @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post)
@@ -75,6 +73,31 @@ describe Mongoid::Denormalize do
       @post.save!
       
       @comment.post_created_at.should eql Time.parse("Jan 1 2011 12:00")
+    end
+  end
+  
+  context "rake task" do
+    it "should correct inconsistent denormalizations on regular documents" do
+      Post.collection.update({ '_id' => @post.id }, { '$set' => { 'user_name' => 'Clint Eastwood' } })
+      
+      Rake::Task["db:denormalize"].invoke
+      Rake::Task["db:denormalize"].reenable
+      
+      @post.reload
+      @post.user_name.should eql @user.name
+    end
+    
+    it "should correct inconsistent denormalizations on referenced embedded documents" do
+      @rake_user = User.create!(:name => "Johnny Depp", :email => "johnny@depp.com")
+      @rake_comment = @post.comments.create!(:body => "Depp's comment", :user => @rake_user)
+      
+      @rake_user.update_attributes!(:name => "J. Depp")
+      
+      Rake::Task["db:denormalize"].invoke
+      Rake::Task["db:denormalize"].reenable
+      
+      @post.reload
+      @post.comments.last.user_name.should eql @rake_user.name
     end
   end
 end

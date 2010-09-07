@@ -2,15 +2,17 @@ require 'rubygems'
 require 'spec'
 require 'mongoid'
 require 'yaml'
+require 'rake'
+
+# Load rake tasks
+load File.expand_path("../../tasks/mongoid_denormalize_tasks.rake", __FILE__)
+task :environment do
+  Dir.chdir(File.dirname(__FILE__))
+end
 
 Mongoid.configure do |config|
-  settings = YAML.load(File.read(File.join(File.dirname(__FILE__), "database.yml")))
-  
-  db = Mongo::Connection.new(settings['host'], settings['port']).db(settings['database'])
-  db.authenticate(settings['username'], settings['password'])
-  
-  config.master = db
+  config.master = Mongo::Connection.new.db("mongoid_denormalize_development")
 end
 
 require File.expand_path("../../lib/mongoid_denormalize", __FILE__)
-Dir["#{File.dirname(__FILE__)}/models/*.rb"].each { |f| require f }
+Dir["#{File.dirname(__FILE__)}/app/models/*.rb"].each { |f| require f }

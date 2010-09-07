@@ -36,6 +36,15 @@ module Mongoid::Denormalize
     end
   end
 
+  def denormalized_valid?
+    denormalize_from
+    !self.changed?
+  end
+
+  def repair_denormalized!
+    self.save! unless denormalized_valid?
+  end
+
   private
     def denormalize_from
       self.denormalize_definitions.each do |definition|
