@@ -1,9 +1,11 @@
+require File.dirname(__FILE__) + '/railties/railtie' if defined?(Rails::Railtie)
+
 # = Mongoid::Denormalize
 #
 # Helper module for denormalizing association attributes in Mongoid models.
 module Mongoid::Denormalize
   extend ActiveSupport::Concern
-
+  
   included do
     cattr_accessor :denormalize_definitions
     

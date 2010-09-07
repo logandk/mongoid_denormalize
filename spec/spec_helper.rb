@@ -5,7 +5,7 @@ require 'yaml'
 require 'rake'
 
 # Load rake tasks
-load File.expand_path("../../tasks/mongoid_denormalize_tasks.rake", __FILE__)
+load File.expand_path("../../lib/railties/denormalize.rake", __FILE__)
 task :environment do
   Dir.chdir(File.dirname(__FILE__))
 end
