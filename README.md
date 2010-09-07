@@ -3,6 +3,8 @@ Mongoid::Denormalize
 
 Helper module for denormalizing association attributes in Mongoid models. Why denormalize? Read *[A Note on Denormalization](http://www.mongodb.org/display/DOCS/MongoDB+Data+Modeling+and+Rails#MongoDBDataModelingandRails-ANoteonDenormalization)*.
 
+Extracted from [coookin'](http://coookin.com), where it is used in production.
+
 
 Installation
 ------------
@@ -84,6 +86,27 @@ the parent. When using the `:to` option, the parent will push the values to its 
     
     # Multiple children. Will set the user_name attribute of "self.posts" and "self.comments" with "self.name".
     denormalize :name, :to => [:posts, :comments]
+
+
+Rake tasks
+----------
+
+A rake task is included for verifying and repairing inconsistent denormalizations. This might be useful your records may be modified
+without Mongoid, or if you are using relational associations in combination with embedded records (see *Known issues*).
+
+    rake db:denormalize
+    
+This task will only update records that have outdated denormalized fields.
+
+
+Known issues
+------------
+
+**Relational associations in combination with embedded records**
+
+If you are using denormalize with the `:to` option, to denormalize values on a relational association that is embedded in another collection,
+the denormalized fields will not be updated when the parent record is changed. This is due to a limitation in Mongoid that prevents querying
+embedded records through relational associations. One way to overcome this issue is to run `rake db:denormalize` in a cron job.
 
 
 Credits
