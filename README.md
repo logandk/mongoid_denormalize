@@ -34,7 +34,7 @@ In your model:
 Example
 -------
 
-    def User
+    class User
       include Mongoid::Document
       include Mongoid::Denormalize
 
@@ -46,7 +46,7 @@ Example
       denormalize :name, :email, :to => :comments
     end
     
-    def Comment
+    class Comment
       include Mongoid::Document
       include Mongoid::Denormalize
 
