@@ -63,7 +63,7 @@ module Mongoid::Denormalize
         assigns = Hash[*definition[:fields].collect { |name| ["#{self.class.name.underscore}_#{name}", self.send(name)] }.flatten]
         
         [definition[:options][:to]].flatten.each do |association|
-          if [:embedded_in, :embeds_one, :referenced_in, :references_one].include? self.class.reflect_on_association(association)
+          if [:embedded_in, :embeds_one, :belongs_to, :has_one].include? self.class.reflect_on_association(association)
             self.send(association).update_attributes(assigns) unless self.send(association).blank?
           else
             self.send(association).to_a.each { |a| a.update_attributes(assigns) }
