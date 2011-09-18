@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
-    s.add_dependency(%q<mongoid>, ["~> 2.1.9"])
+    s.add_dependency(%q<mongoid>, [">= 2.1.9"])
   end
 end
 
