@@ -4,8 +4,20 @@ class User
   
   field :name
   field :email
+  field :location, :type => Array
   
   has_one :post
   
-  denormalize :name, :email, :to => :post
+  def comments=(val)
+    post ||= Post.new
+    post.comments = val
+  end
+  
+  def comments
+    post ||= Post.new
+    post.comments
+  end
+  
+  denormalize :name, :email, :to => [:post, :comments]
+  denormalize :location, :to => :post
 end

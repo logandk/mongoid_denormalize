@@ -60,7 +60,7 @@ module Mongoid::Denormalize
       self.denormalize_definitions.each do |definition|
         next unless definition[:options][:to]
         
-        assigns = Hash[*definition[:fields].collect { |name| ["#{self.class.name.underscore}_#{name}", self.send(name)] }.flatten]
+        assigns = Hash[*definition[:fields].collect { |name| ["#{self.class.name.underscore}_#{name}", self.send(name)] }.flatten(1)]
         
         [definition[:options][:to]].flatten.each do |association|
           if [:embedded_in, :embeds_one, :belongs_to, :has_one].include? self.class.reflect_on_association(association)

@@ -9,6 +9,6 @@ class Post
   belongs_to :user
   embeds_many :comments
   
-  denormalize :name, :email, :from => :user
+  denormalize :name, :email, :location, :from => :user
   denormalize :created_at, :to => :comments
 end

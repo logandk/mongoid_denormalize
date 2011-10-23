@@ -5,7 +5,7 @@ describe Mongoid::Denormalize do
     Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)
     
     @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
-    @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post)
+    @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post, :location => [1, 1])
     @comment = @post.comments.create(:body => "This is the comment")
   end
 
@@ -13,6 +13,7 @@ describe Mongoid::Denormalize do
     it "should define multiple fields for association" do
       @post.fields.should have_key "user_name"
       @post.fields.should have_key "user_email"
+      @post.fields.should have_key "user_location"
     end
     
     it "should default to string field type for associated fields" do
@@ -37,10 +38,14 @@ describe Mongoid::Denormalize do
     
     it "should denormalize fields with specified type" do
       @comment.post_created_at.should eql @post.created_at
+      
+      @post.user_location.should eql @user.location
     end
     
     it "should update denormalized values if attribute is changed" do
-      @user.update_attributes(:name => "Bob Doe")
+      @user.update_attributes(:name => "Bob Doe", :location => [4, 4])
+      
+      @post.user_location.should be @user.location
       
       @comment.user_name.should eql @user.name
     end
