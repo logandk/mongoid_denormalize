@@ -6,11 +6,7 @@ describe Mongoid::Denormalize do
     
     @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
     @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post)
-    @comment = @post.comments.create(:body => "This is the comment", :user => @user)
-    
-    @user.comments << @comment
-    
-    @other_user = User.create!(:name => "Bill")
+    @comment = @post.comments.create(:body => "This is the comment")
   end
 
   context "denormalize from" do
