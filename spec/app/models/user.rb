@@ -5,8 +5,7 @@ class User
   field :name
   field :email
   
-  references_one :post
-  references_many :comments
+  has_one :post
   
-  denormalize :name, :email, :to => [:post, :comments]
+  denormalize :name, :email, :to => :post
 end
