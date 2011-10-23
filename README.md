@@ -38,7 +38,7 @@ Example
       include Mongoid::Document
       include Mongoid::Denormalize
 
-      references_many :comments
+      has_many :comments
 
       field :name
       field :email
@@ -50,7 +50,7 @@ Example
       include Mongoid::Document
       include Mongoid::Denormalize
 
-      referenced_in :user
+      belongs_to :user
 
       field :body
       
@@ -104,9 +104,10 @@ Known issues
 
 **Relational associations in combination with embedded records**
 
-If you are using denormalize with the `:to` option, to denormalize values on a relational association that is embedded in another collection,
-the denormalized fields will not be updated when the parent record is changed. This is due to a limitation in Mongoid that prevents querying
-embedded records through relational associations. One way to overcome this issue is to run `rake db:denormalize` in a cron job.
+It is not recommended to use mongoid_denormalize to perform denormalization to embedded records via an association because
+ MongoDB/Mongoid do not support direct access to embedded fields via some other association.
+
+So, if User has_many :posts and User has_many :comments, but Comments are embedded_in :post, a user can't directly access a comment.
 
 
 Credits
