@@ -87,6 +87,14 @@ the parent. When using the `:to` option, the parent will push the values to its 
     # Multiple children. Will set the user_name attribute of "self.posts" and "self.comments" with "self.name".
     denormalize :name, :to => [:posts, :comments]
 
+You must specify the type of all denormalizations when using the `:from` option, unless the denormalized type is `String`, the default.
+ 
+    # in User
+    field :location, :type => Array
+    denormalize :location, :to => :posts
+    
+    # in Post
+    denormalize :location, :type => Array, :from => :user
 
 Rake tasks
 ----------
