@@ -6,7 +6,7 @@ class Post
   field :body
   field :created_at, :type => Time
   
-  referenced_in :user
+  belongs_to :user
   embeds_many :comments
   
   denormalize :name, :email, :from => :user
