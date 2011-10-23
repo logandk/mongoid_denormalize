@@ -4,9 +4,10 @@ class User
   
   field :name
   field :email
+  field :location, :type => Array
   
-  references_one :post
-  references_many :comments
+  has_one :post
+  has_many :comments
   
-  denormalize :name, :email, :to => [:post, :comments]
+  denormalize :name, :email, :location, :to => [:post, :comments]
 end

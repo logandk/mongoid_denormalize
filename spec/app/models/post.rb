@@ -6,9 +6,10 @@ class Post
   field :body
   field :created_at, :type => Time
   
-  referenced_in :user
-  embeds_many :comments
+  belongs_to :user
+  has_many :comments
   
+  denormalize :location, :type => Array, :from => :user
   denormalize :name, :email, :from => :user
   denormalize :created_at, :to => :comments
 end
