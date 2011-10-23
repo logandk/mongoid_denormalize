@@ -112,8 +112,8 @@ Known issues
 
 **Relational associations in combination with embedded records**
 
-It is not recommended nor supported to use mongoid_denormalize to perform denormalization to embedded records via an association because
- MongoDB/Mongoid do not support direct access to embedded fields via some other association.
+It is not recommended nor supported to use mongoid_denormalize to perform denormalization to embedded records through a relational association because
+ MongoDB/Mongoid do not support direct access to embedded fields via a relational association.
 
 So, if User has_many :posts and User has_many :comments, but Comments are embedded_in :post, a user can't directly access a comment.
 
