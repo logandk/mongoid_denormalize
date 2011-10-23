@@ -16,7 +16,7 @@ class Comment
     post.user = val
   end
   
-  denormalize :location, :from => :user
+  denormalize :location, :type => Array, :from => :user
   denormalize :name, :from => :user
   denormalize :email, :from => :user
   denormalize :created_at, :type => Time, :from => :post

@@ -48,7 +48,7 @@ describe Mongoid::Denormalize do
     it "should update denormalized values if attribute is changed" do
       @user.update_attributes(:name => "Bob Doe", :location => [4, 4])
       
-      @post.user_location.should be @user.location
+      @post.user_location.should eql @user.location
       
       @comment.user_name.should eql @user.name
     end

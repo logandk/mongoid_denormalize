@@ -33,7 +33,7 @@ module Mongoid::Denormalize
 
       # Define schema
       unless options[:to]
-        fields.each { |name| field "#{options[:from]}_#{name}", :type => options[:type] }
+        fields.each { |name| field "#{options[:from]}_#{name}", :type => options[:type] || String }
       end
     end
   end
