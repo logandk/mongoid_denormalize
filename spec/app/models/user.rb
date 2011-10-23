@@ -7,16 +7,7 @@ class User
   field :location, :type => Array
   
   has_one :post
-  
-  def comments=(val)
-    post ||= Post.new
-    post.comments = val
-  end
-  
-  def comments
-    post ||= Post.new
-    post.comments
-  end
+  has_many :comments
   
   denormalize :name, :email, :location, :to => [:post, :comments]
 end

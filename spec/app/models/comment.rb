@@ -4,17 +4,9 @@ class Comment
   
   field :body
   
-  embedded_in :post, :inverse_of => :comments
-  
-  def user
-    post ||= Post.new
-    post.user
-  end
-  
-  def user=(val)
-    post ||= Post.new
-    post.user = val
-  end
+  belongs_to :post, :inverse_of => :comments
+  belongs_to :user
+
   
   denormalize :location, :type => Array, :from => :user
   denormalize :name, :from => :user

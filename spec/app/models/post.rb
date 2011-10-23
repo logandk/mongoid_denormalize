@@ -7,7 +7,7 @@ class Post
   field :created_at, :type => Time
   
   belongs_to :user
-  embeds_many :comments
+  has_many :comments
   
   denormalize :location, :type => Array, :from => :user
   denormalize :name, :email, :from => :user
