@@ -18,6 +18,5 @@ class User
     post.comments
   end
   
-  denormalize :name, :email, :to => [:post, :comments]
-  denormalize :location, :to => :post
+  denormalize :name, :email, :location, :to => [:post, :comments]
 end
