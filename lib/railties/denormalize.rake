@@ -4,11 +4,11 @@ namespace :db do
     get_denormalizable_models.each do |klass|
       if klass.embedded?
         reflection = klass.reflect_on_all_associations(:embedded_in).first
-        parent     = reflection.options[:name].to_s.classify.constantize
+        parent     = reflection.class_name.to_s.classify.constantize
         
         unless parent.embedded?
           parent.all.each do |parent_instance|
-            parent_instance.send(reflection.options[:inverse_of]).each(&:repair_denormalized!)
+            parent_instance.send(reflection.inverse).each(&:repair_denormalized!)
           end
         end
       else

@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'spec'
+#require 'spec'
 require 'mongoid'
 require 'yaml'
 require 'rake'
