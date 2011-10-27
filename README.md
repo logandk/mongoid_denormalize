@@ -118,6 +118,13 @@ It is not recommended nor supported to use mongoid_denormalize to perform denorm
 So, if User has_many :posts and User has_many :comments, but Comments are embedded_in :post, a user can't directly access a comment.
 
 
+Contributors
+-------
+* hubsmoke (https://github.com/hubsmoke)
+* Leo Lou (https://github.com/l4u)
+* Austin Bales (https://github.com/arbales)
+
+
 Credits
 -------
 
