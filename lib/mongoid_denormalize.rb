@@ -36,6 +36,10 @@ module Mongoid::Denormalize
         fields.each { |name| field "#{options[:from]}_#{name}", :type => options[:type] || String }
       end
     end
+    
+    def is_denormalized?
+      true
+    end
   end
 
   def denormalized_valid?
@@ -46,7 +50,7 @@ module Mongoid::Denormalize
   def repair_denormalized!
     self.save! unless denormalized_valid?
   end
-
+  
   private
     def denormalize_from
       self.denormalize_definitions.each do |definition|
@@ -66,15 +70,28 @@ module Mongoid::Denormalize
           relation = []
           reflect = self.class.reflect_on_association(association)
           relation = reflect.relation.macro unless reflect.nil? || reflect.relation.nil?
-          
+
+          reflect.klass.skip_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
+
           if [:embedded_in, :embeds_one, :referenced_in, :references_one, :has_one, :belongs_to].include? relation
             c = self.send(association)
           
-            c.update_attributes(assigns) unless c.blank?
+            unless c.blank?
+              assigns.each { |assign| c.send("#{assign[0]}=", assign[1]) }
+              
+              c.save
+            end
           else
             c = self.send(association)
-            c.to_a.each { |a| a.update_attributes(assigns) }
+            
+            c.to_a.each do |a|
+              assigns.each { |assign| a.send("#{assign[0]}=", assign[1]) }
+              
+              a.save
+            end
           end
+          
+          reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
         end
       end
     end

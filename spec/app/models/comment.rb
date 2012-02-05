@@ -7,6 +7,7 @@ class Comment
   belongs_to :post, :inverse_of => :comments
   belongs_to :user
 
+  attr_accessible :body, :user
   
   denormalize :location, :type => Array, :from => :user
   denormalize :name, :from => :user
