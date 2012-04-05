@@ -12,5 +12,5 @@ class User
   has_many :moderated_comments, :class_name => "Comment", :inverse_of => :moderator
   
   denormalize :name, :email, :location, :to => [:post, :comments]
-  denormalize :nickname, :to => :moderated_comments, as: :moderator
+  denormalize :nickname, :to => :moderated_comments, :as => :moderator
 end
