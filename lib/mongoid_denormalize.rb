@@ -5,10 +5,10 @@ require File.dirname(__FILE__) + '/railties/railtie' if defined?(Rails::Railtie)
 # Helper module for denormalizing association attributes in Mongoid models.
 module Mongoid::Denormalize
   extend ActiveSupport::Concern
-  
+
   included do
     cattr_accessor :denormalize_definitions
-    
+
     before_save :denormalize_from
     after_save :denormalize_to
   end
@@ -28,7 +28,7 @@ module Mongoid::Denormalize
     #   end
     def denormalize(*fields)
       options = fields.pop
-      
+
       (self.denormalize_definitions ||= []) << { :fields => fields, :options => options }
 
       # Define schema
@@ -36,7 +36,7 @@ module Mongoid::Denormalize
         fields.each { |name| field "#{options[:from]}_#{name}", :type => options[:type] || String }
       end
     end
-    
+
     def is_denormalized?
       true
     end
@@ -50,49 +50,47 @@ module Mongoid::Denormalize
   def repair_denormalized!
     self.save! unless denormalized_valid?
   end
-  
+
   private
-    def denormalize_from
-      self.denormalize_definitions.each do |definition|
-        next if definition[:options][:to]
-        
-        definition[:fields].each { |name| self.send("#{definition[:options][:from]}_#{name}=", self.send(definition[:options][:from]).try(name)) }
-      end
+  def denormalize_from
+    self.denormalize_definitions.each do |definition|
+      next if definition[:options][:to]
+
+      definition[:fields].each { |name| self.send("#{definition[:options][:from]}_#{name}=", self.send(definition[:options][:from]).try(name)) }
     end
-    
-    def denormalize_to
-      self.denormalize_definitions.each do |definition|
-        next unless definition[:options][:to]
-        assigns = Hash[*definition[:fields].collect { |name| ["#{self.class.name.underscore}_#{name}", self.send(name)] }.flatten(1)]
-        
-      
-        [definition[:options][:to]].flatten.each do |association|
-          relation = []
-          reflect = self.class.reflect_on_association(association)
-          relation = reflect.relation.macro unless reflect.nil? || reflect.relation.nil?
+  end
 
-          reflect.klass.skip_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
+  def denormalize_to
+    self.denormalize_definitions.each do |definition|
+      next unless definition[:options][:to]
+      assigns = Hash[*definition[:fields].collect { |name| [name, self.send(name)] }.flatten(1)]
 
-          if [:embedded_in, :embeds_one, :referenced_in, :references_one, :has_one, :belongs_to].include? relation
-            c = self.send(association)
-          
-            unless c.blank?
-              assigns.each { |assign| c.send("#{assign[0]}=", assign[1]) }
-              
-              c.save
-            end
-          else
-            c = self.send(association)
-            
-            c.to_a.each do |a|
-              assigns.each { |assign| a.send("#{assign[0]}=", assign[1]) }
-              
-              a.save
-            end
+
+      [definition[:options][:to]].flatten.each do |association|
+        relation = []
+        reflect = self.class.reflect_on_association(association)
+        relation = reflect.relation.macro unless reflect.nil? || reflect.relation.nil?
+
+        reflect.klass.skip_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
+
+        c = self.send(association)
+        prefix = (reflect.inverse_of || reflect.inverse_class_name).to_s.underscore
+
+
+        if [:embedded_in, :embeds_one, :referenced_in, :references_one, :has_one, :belongs_to].include? relation
+          unless c.blank?
+            assigns.each { |assign| c.send("#{prefix}_#{assign[0]}=", assign[1]) }
+            c.save
           end
-          
-          reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
+        else
+          c.to_a.each do |a|
+            assigns.each { |assign| a.send("#{prefix}_#{assign[0]}=", assign[1]) }
+            a.save
+          end
         end
+
+        reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
       end
     end
+  end
 end
