@@ -73,20 +73,17 @@ module Mongoid::Denormalize
 
         reflect.klass.skip_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
 
-        c = self.send(association)
+        association_s = association.to_s
+        associated = self.send(association)
         prefix = (reflect.inverse_of || reflect.inverse_class_name).to_s.underscore
 
+        chgs = assigns.inject({}){ |m,(k,v)| m["#{prefix}_#{k}"]= v; m }
 
-        if [:embedded_in, :embeds_one, :referenced_in, :references_one, :has_one, :belongs_to].include? relation
-          unless c.blank?
-            assigns.each { |assign| c.send("#{prefix}_#{assign[0]}=", assign[1]) }
-            c.save
-          end
-        else
-          c.to_a.each do |a|
-            assigns.each { |assign| a.send("#{prefix}_#{assign[0]}=", assign[1]) }
-            a.save
-          end
+        if association_s == association_s.pluralize
+          associated.criteria.update_all chgs
+          associated.each{ |document| document.write_attributes chgs, false }
+        elsif associated
+          associated.update_attributes chgs
         end
 
         reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
