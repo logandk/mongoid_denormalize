@@ -7,6 +7,7 @@ describe Mongoid::Denormalize do
     @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
     @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post, :location => [1, 1])
     @comment = @post.comments.create(:body => "This is the comment", :user => @user)
+    @article = @user.articles.create!(:title => "Article about Lorem", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
 
     @user.comments << @comment
     @other_user = User.create!(:name => "Bill")
@@ -77,6 +78,14 @@ describe Mongoid::Denormalize do
       @post.save!
       
       @comment.post_created_at.should eql Time.parse("Jan 1 2011 12:00")
+    end
+
+    it "should push denormalized fields to association using inverse_of class name" do
+      @user.update_attributes(:name => "Bob Doe", :email => "bob@doe.com")
+      @user.save!
+
+      @article.author_name.should eql "Bob Doe"
+      @article.author_email.should eql "bob@doe.com"
     end
   end
   
