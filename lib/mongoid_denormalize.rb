@@ -11,6 +11,7 @@ module Mongoid::Denormalize
     
     before_save :denormalize_from
     after_save :denormalize_to
+    before_destroy :nullify_denormalize_to
   end
 
   module ClassMethods
@@ -67,32 +68,47 @@ module Mongoid::Denormalize
         
       
         [definition[:options][:to]].flatten.each do |association|
-          relation = []
-          reflect = self.class.reflect_on_association(association)
-          relation = reflect.relation.macro unless reflect.nil? || reflect.relation.nil?
-
-          reflect.klass.skip_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
-
-          if [:embedded_in, :embeds_one, :referenced_in, :references_one, :has_one, :belongs_to].include? relation
-            c = self.send(association)
-          
-            unless c.blank?
-              assigns.each { |assign| c.send("#{assign[0]}=", assign[1]) }
-              
-              c.save
-            end
-          else
-            c = self.send(association)
-            
-            c.to_a.each do |a|
-              assigns.each { |assign| a.send("#{assign[0]}=", assign[1]) }
-              
-              a.save
-            end
-          end
-          
-          reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
+          push_denormalized_values(association, assigns)
         end
       end
+    end
+
+    def nullify_denormalize_to
+      self.denormalize_definitions.each do |definition|
+        next unless definition[:options][:to]
+        assigns = Hash[*definition[:fields].collect { |name| ["#{self.class.name.underscore}_#{name}", nil] }.flatten(1)]
+
+        [definition[:options][:to]].flatten.each do |association|
+          push_denormalized_values(association, assigns)
+        end
+      end
+    end
+
+    def push_denormalized_values(association, assigns)
+      relation = []
+      reflect = self.class.reflect_on_association(association)
+      relation = reflect.relation.macro unless reflect.nil? || reflect.relation.nil?
+
+      reflect.klass.skip_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
+
+      if [:embedded_in, :embeds_one, :referenced_in, :references_one, :has_one, :belongs_to].include? relation
+        c = self.send(association)
+
+        unless c.blank?
+          assigns.each { |assign| c.send("#{assign[0]}=", assign[1]) }
+
+          c.save
+        end
+      else
+        c = self.send(association)
+
+        c.to_a.each do |a|
+          assigns.each { |assign| a.send("#{assign[0]}=", assign[1]) }
+
+          a.save
+        end
+      end
+
+      reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
     end
 end

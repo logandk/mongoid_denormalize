@@ -4,7 +4,8 @@ describe Mongoid::Denormalize do
   before(:all) do
     Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)
     
-    @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
+    @category = Category.create!(:name => "Misc")
+    @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :category => @category, :created_at => Time.parse("Jan 1 2010 12:00"))
     @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post, :location => [1, 1])
     @comment = @post.comments.create(:body => "This is the comment", :user => @user)
 
@@ -77,6 +78,14 @@ describe Mongoid::Denormalize do
       @post.save!
       
       @comment.post_created_at.should eql Time.parse("Jan 1 2011 12:00")
+    end
+
+    it "should nullify denormalized values when object is destroyed" do
+      @post.category_name.should eql "Misc"
+
+      @category.destroy
+
+      @post.category_name.should eql nil
     end
   end
   
