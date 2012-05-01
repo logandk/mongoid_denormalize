@@ -63,8 +63,10 @@ module Mongoid::Denormalize
     def denormalize_to
       self.denormalize_definitions.each do |definition|
         next unless definition[:options][:to]
-        assigns = Hash[*definition[:fields].collect { |name| ["#{self.class.name.underscore}_#{name}", self.send(name)] }.flatten(1)]
-        
+        as = definition[:options][:as]
+        prefix = as ? as : self.class.name.underscore
+
+        assigns = Hash[*definition[:fields].collect { |name| ["#{prefix}_#{name}", self.send(name)] }.flatten(1)]
       
         [definition[:options][:to]].flatten.each do |association|
           relation = []
@@ -86,7 +88,6 @@ module Mongoid::Denormalize
             
             c.to_a.each do |a|
               assigns.each { |assign| a.send("#{assign[0]}=", assign[1]) }
-              
               a.save
             end
           end

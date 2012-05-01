@@ -5,10 +5,12 @@ describe Mongoid::Denormalize do
     Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)
     
     @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
-    @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post, :location => [1, 1])
+    @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post, :location => [1, 1], :nickname => "jdoe")
     @comment = @post.comments.create(:body => "This is the comment", :user => @user)
+    @moderated_comment = @post.comments.create(:body => "This is a moderated comment", :moderator => @user)
 
     @user.comments << @comment
+    @user.moderated_comments << @moderated_comment
     @other_user = User.create!(:name => "Bill")
   end
 
@@ -77,6 +79,14 @@ describe Mongoid::Denormalize do
       @post.save!
       
       @comment.post_created_at.should eql Time.parse("Jan 1 2011 12:00")
+    end
+
+    it "should push to overriden field names" do
+      @user.nickname = "jonsey"
+      @user.save!
+      
+      @moderated_comment.reload
+      @moderated_comment.moderator_nickname.should eql "jonsey"
     end
   end
   
