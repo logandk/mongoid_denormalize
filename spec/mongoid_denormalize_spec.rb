@@ -46,6 +46,12 @@ describe Mongoid::Denormalize do
       
       @post.user_location.should eql @user.location
     end
+
+    it "should use fresh values from database where possible" do
+      @other_post = Post.create!(:title => "My first blog post")
+      @other_post.update_attribute(:user_id, @user.id)
+      @other_post.user_name.should eql @user.name
+    end
     
     it "should update denormalized values if attribute is changed" do
       @user.update_attributes(:name => "Bob Doe", :location => [4, 4])

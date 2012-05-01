@@ -56,7 +56,12 @@ module Mongoid::Denormalize
       self.denormalize_definitions.each do |definition|
         next if definition[:options][:to]
         
-        definition[:fields].each { |name| self.send("#{definition[:options][:from]}_#{name}=", self.send(definition[:options][:from]).try(name)) }
+        definition[:fields].each do |name|
+          field = definition[:options][:from]
+          # force reload if :from method is an association ; call it normally otherwise
+          associated =  self.class.reflect_on_association(field) ? self.send(field, true) : self.send(field)
+          self.send("#{field}_#{name}=", associated.try(name))
+        end
       end
     end
     
