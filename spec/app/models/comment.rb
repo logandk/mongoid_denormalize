@@ -3,9 +3,9 @@ class Comment
   include Mongoid::Denormalize
   
   field :body
-  
+
   belongs_to :post, :inverse_of => :comments
-  belongs_to :user
+  belongs_to :user, :class_name => "User", :inverse_of => :comments
   belongs_to :moderator, :class_name => "User", :inverse_of => :moderated_comments
 
   attr_accessible :body, :user, :moderator

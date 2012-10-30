@@ -2,11 +2,12 @@ require "spec_helper"
 
 describe Mongoid::Denormalize do
   before(:all) do
-    Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)
-    
+    Mongoid.purge!
+
     @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
     @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post, :location => [1, 1], :nickname => "jdoe")
     @comment = @post.comments.create(:body => "This is the comment", :user => @user)
+    @link = @post.links.create(:name => "This is the link", :href => "http://en.wikipedia.org/wiki/Special:Random")
     @moderated_comment = @post.comments.create(:body => "This is a moderated comment", :moderator => @user)
 
     @user.comments << @comment
@@ -98,7 +99,7 @@ describe Mongoid::Denormalize do
   
   context "rake task" do
     it "should correct inconsistent denormalizations on regular documents" do
-      Post.collection.update({ '_id' => @post.id }, { '$set' => { 'user_name' => 'Clint Eastwood' } })
+      Mongoid.session(:default)[:post].find('_id' => @post.id).update({'$set' => { 'user_name' => 'Clint Eastwood' } })
       
       Rake::Task["db:denormalize"].invoke
       Rake::Task["db:denormalize"].reenable
