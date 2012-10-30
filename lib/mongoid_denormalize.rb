@@ -85,12 +85,17 @@ module Mongoid::Denormalize
   end
 
   def nullify_denormalize_to
-    self.denormalize_definitions.each do |definition|
-      next unless definition[:options][:to]
-      assigns = Hash[*definition[:fields].collect { |name| ["#{self.class.name.underscore}_#{name}", nil] }.flatten(1)]
+    unless denormalize_definitions.nil?
+      self.denormalize_definitions.each do |definition|
+        next unless definition[:options][:to]
+        as = definition[:options][:as]
+        prefix = as ? as : self.class.name.underscore
 
-      [definition[:options][:to]].flatten.each do |association|
-        push_denormalized_values(association, assigns)
+        assigns = Hash[*definition[:fields].collect { |name| ["#{prefix}_#{name}", nil] }.flatten(1)]
+
+        [definition[:options][:to]].flatten.each do |association|
+          push_denormalized_values(association, assigns)
+        end
       end
     end
   end
@@ -107,7 +112,6 @@ module Mongoid::Denormalize
 
       unless c.blank?
         assigns.each { |assign| c.send("#{assign[0]}=", assign[1]) }
-
         c.save
       end
     else
@@ -115,12 +119,10 @@ module Mongoid::Denormalize
 
       c.to_a.each do |a|
         assigns.each { |assign| a.send("#{assign[0]}=", assign[1]) }
-
         a.save
       end
     end
 
     reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
   end
-
 end
