@@ -105,24 +105,22 @@ module Mongoid::Denormalize
     reflect = self.class.reflect_on_association(association)
     relation = reflect.relation.macro unless reflect.nil? || reflect.relation.nil?
 
-    reflect.klass.skip_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
+    reflect.klass.skip_callback(:save, :before, :denormalize_from)
 
     if [:embedded_in, :embeds_one, :referenced_in, :references_one, :has_one, :belongs_to].include? relation
       c = self.send(association)
 
       unless c.blank?
-        assigns.each { |assign| c.send("#{assign[0]}=", assign[1]) }
-        c.save
+        assigns.each { |assign| c.set(assign[0],assign[1]) }
       end
     else
       c = self.send(association)
 
       c.to_a.each do |a|
-        assigns.each { |assign| a.send("#{assign[0]}=", assign[1]) }
-        a.save
+        assigns.each { |assign| a.set(assign[0],assign[1]) }
       end
     end
 
-    reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
+    reflect.klass.set_callback(:save, :before, :denormalize_from)
   end
 end
