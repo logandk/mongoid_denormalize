@@ -8,8 +8,10 @@ class User
   field :location, :type => Array
 
   has_one :post
-  has_many :comments
+  has_many :comments, :class_name => "Comment" ,  :inverse_of => :user
   has_many :moderated_comments, :class_name => "Comment", :inverse_of => :moderator
+
+  attr_accessible :post, :comments, :moderated_comments
   
   denormalize :name, :email, :location, :to => [:post, :comments]
   denormalize :nickname, :to => :moderated_comments, :as => :moderator

@@ -11,7 +11,7 @@ task :environment do
 end
 
 Mongoid.configure do |config|
-  config.master = Mongo::Connection.new.db("mongoid_denormalize_development")
+  config.connect_to("mongoid_denormalize_development")
 end
 
 require File.expand_path("../../lib/mongoid_denormalize", __FILE__)
