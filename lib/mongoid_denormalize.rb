@@ -117,8 +117,11 @@ module Mongoid::Denormalize
       c = self.send(association)
 
       c.to_a.each do |a|
+        a.repair_denormalized!
         assigns.each { |assign| a.set(assign[0],assign[1]) }
+
       end
+
     end
 
     reflect.klass.set_callback(:save, :before, :denormalize_from)
