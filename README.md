@@ -1,6 +1,9 @@
 Mongoid::Denormalize
 ====================
 
+*Note: I am no longer actively maintaining this module, and I do not know whether it is compatible with newer versions of mongoid. If you would like to take ownership of this repository, please let me know.*
+
+
 Helper module for denormalizing association attributes in Mongoid models. Why denormalize? Read *[A Note on Denormalization](http://www.mongodb.org/display/DOCS/MongoDB+Data+Modeling+and+Rails#MongoDBDataModelingandRails-ANoteonDenormalization)*.
 
 Extracted from [coookin'](http://coookin.com), where it is used in production.
