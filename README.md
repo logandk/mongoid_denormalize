@@ -81,7 +81,7 @@ the parent. When using the `:to` option, the parent will push the values to its 
     # Basic denormalization. Will set the user_name attribute with the associated user's name.
     denormalize :name, :from => :user
     
-    # Basic denormalization. Will set the user_name attribute of "self.comments" with "self.name".
+    # Basic denormalization. Will set the user_name attribute of "self.comments" to the value of "self.name".
     denormalize :name, :to => :comments
     
     # Multiple fields. Will set the user_name and user_email attributes with the associated user's name and email.
@@ -89,6 +89,9 @@ the parent. When using the `:to` option, the parent will push the values to its 
     
     # Multiple children. Will set the user_name attribute of "self.posts" and "self.comments" with "self.name".
     denormalize :name, :to => [:posts, :comments]
+
+    # With custom field name prefix. Will set the commenter_name attribute of "self.comments".
+    denormalize :name, :to => :comments, :as => :commenter
 
 You must specify the type of all denormalizations when using the `:from` option, unless the denormalized type is `String`, the default.
  
@@ -120,12 +123,18 @@ It is not recommended nor supported to use mongoid_denormalize to perform denorm
 
 So, if User has_many :posts and User has_many :comments, but Comments are embedded_in :post, a user can't directly access a comment.
 
+Contributing
+-------
+
+Clone the repository and install jeweler with `gem install jeweler` so that you can run the rake tasks.
 
 Contributors
 -------
 * hubsmoke (https://github.com/hubsmoke)
 * Leo Lou (https://github.com/l4u)
 * Austin Bales (https://github.com/arbales)
+* Isaac Cambron (https://github.com/icambron)
+* Shannon Carey (https://github.com/rehevkor5)
 
 
 Credits
