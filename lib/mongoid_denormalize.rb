@@ -71,8 +71,25 @@ module Mongoid::Denormalize
         as = definition[:options][:as]
         prefix = as ? as : self.class.name.underscore
 
-        assigns = Hash[*definition[:fields].collect { |name| ["#{prefix}_#{name}", self.send(name)] }.flatten(1)]
-      
+        assigns = definition[:fields].collect do |name|
+          {
+            :name => name.to_s,
+            :denormalized => "#{prefix}_#{name}", 
+            :value => self.send(name)
+          }
+        end
+
+        def assign_and_save(obj, assigns)
+          assigned_one = false
+          assigns.each do |assign|
+            if self.changed_attributes.has_key?(assign[:name])
+              assigned_one = true
+              obj.send("#{assign[:denormalized]}=", assign[:value])
+            end
+          end
+          obj.save if assigned_one
+        end
+
         [definition[:options][:to]].flatten.each do |association|
           relation = []
           reflect = self.class.reflect_on_association(association)
@@ -84,17 +101,12 @@ module Mongoid::Denormalize
             c = self.send(association)
           
             unless c.blank?
-              assigns.each { |assign| c.send("#{assign[0]}=", assign[1]) }
-              
-              c.save
+              assign_and_save(c, assigns)
             end
           else
             c = self.send(association)
             
-            c.to_a.each do |a|
-              assigns.each { |assign| a.send("#{assign[0]}=", assign[1]) }
-              a.save
-            end
+            c.to_a.each{|c| assign_and_save(c, assigns)}
           end
           
           reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
