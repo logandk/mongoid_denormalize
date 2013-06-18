@@ -94,6 +94,11 @@ describe Mongoid::Denormalize do
       @moderated_comment.reload
       @moderated_comment.moderator_nickname.should eql "jonsey"
     end
+
+    it "shouldn't make superfluous saves" do
+      @comment.should_not_receive(:save)
+      @post.save!
+    end
   end
   
   context "rake task" do

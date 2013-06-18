@@ -26,8 +26,8 @@ module Mongoid::Denormalize
     #     denormalize :name, :avatar, :from => :user
     #     denormalize :created_at, :to => :comments
     #   end
-    def denormalize(*fields)
-      options = fields.pop
+    def denormalize(*args)
+      *fields, options = args
       
       (self.denormalize_definitions ||= []) << { :fields => fields, :options => options }
 
@@ -53,9 +53,9 @@ module Mongoid::Denormalize
   
   private
     def denormalize_from
-      self.denormalize_definitions.each do |definition|
-        next if definition[:options][:to]
-        
+      self.denormalize_definitions.reject do |definition|
+        definition[:options][:to]
+      end.each do |definition|
         definition[:fields].each do |name|
           field = definition[:options][:from]
           # force reload if :from method is an association ; call it normally otherwise
@@ -66,39 +66,49 @@ module Mongoid::Denormalize
     end
     
     def denormalize_to
-      self.denormalize_definitions.each do |definition|
-        next unless definition[:options][:to]
+      self.denormalize_definitions.find_all do |definition|
+        definition[:options][:to]
+      end.each do |definition|
         as = definition[:options][:as]
         prefix = as ? as : self.class.name.underscore
 
-        assigns = Hash[*definition[:fields].collect { |name| ["#{prefix}_#{name}", self.send(name)] }.flatten(1)]
-      
-        [definition[:options][:to]].flatten.each do |association|
+        assignments = definition[:fields].collect do |source_field|
+          {
+            :source_field => source_field.to_s,
+            :denormalized_field => "#{prefix}_#{source_field}",
+            :value => self.send(source_field)
+          }
+        end
+
+        Array(definition[:options][:to]).each do |association|
           relation = []
           reflect = self.class.reflect_on_association(association)
           relation = reflect.relation.macro unless reflect.nil? || reflect.relation.nil?
 
           reflect.klass.skip_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
 
+          c = self.send(association)
           if [:embedded_in, :embeds_one, :referenced_in, :references_one, :has_one, :belongs_to].include? relation
-            c = self.send(association)
-          
             unless c.blank?
-              assigns.each { |assign| c.send("#{assign[0]}=", assign[1]) }
-              
-              c.save
+              assign_and_save(c, assignments)
             end
           else
-            c = self.send(association)
-            
-            c.to_a.each do |a|
-              assigns.each { |assign| a.send("#{assign[0]}=", assign[1]) }
-              a.save
-            end
+            c.to_a.each{|c| assign_and_save(c, assignments)}
           end
           
           reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
         end
       end
+    end
+
+    def assign_and_save(obj, assignments)
+      assigned_any = false
+      assignments.each do |assignment|
+        if self.changed_attributes.has_key?(assignment[:source_field])
+          assigned_any = true
+          obj.send("#{assignment[:denormalized_field]}=", assignment[:value])
+        end
+      end
+      obj.save if assigned_any
     end
 end
