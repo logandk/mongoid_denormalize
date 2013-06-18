@@ -8,6 +8,7 @@ describe Mongoid::Denormalize do
     @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post, :location => [1, 1], :nickname => "jdoe")
     @comment = @post.comments.create(:body => "This is the comment", :user => @user)
     @moderated_comment = @post.comments.create(:body => "This is a moderated comment", :moderator => @user)
+    @article = @user.articles.create!(:title => "Article about Lorem", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
 
     @user.comments << @comment
     @user.moderated_comments << @moderated_comment
@@ -87,12 +88,20 @@ describe Mongoid::Denormalize do
       @comment.post_created_at.should eql Time.parse("Jan 1 2011 12:00")
     end
 
+    it "should push denormalized fields to association using inverse_of class name" do
+      @user.update_attributes(:name => "Bob Doe", :email => "bob@doe.com")
+      @user.save!
+
+      @article.author_name.should eql "Bob Doe"
+      @article.author_email.should eql "bob@doe.com"
+    end
+
     it "should push to overriden field names" do
       @user.nickname = "jonsey"
       @user.save!
       
       @moderated_comment.reload
-      @moderated_comment.moderator_nickname.should eql "jonsey"
+      @moderated_comment.mod_nickname.should eql "jonsey"
     end
 
     it "shouldn't make superfluous saves" do
