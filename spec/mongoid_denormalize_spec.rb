@@ -1,17 +1,18 @@
 require "spec_helper"
 
 describe Mongoid::Denormalize do
-  before(:all) do
-    Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)
-    
+  before(:each) do
     @post = Post.create!(:title => "Blog post", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
     @user = User.create!(:name => "John Doe", :email => "john@doe.com", :post => @post, :location => [1, 1], :nickname => "jdoe")
     @comment = @post.comments.create(:body => "This is the comment", :user => @user)
+    @post.reload #neccessary for older versions of Mongoid
     @moderated_comment = @post.comments.create(:body => "This is a moderated comment", :moderator => @user)
     @article = @user.articles.create!(:title => "Article about Lorem", :body => "Lorem ipsum...", :created_at => Time.parse("Jan 1 2010 12:00"))
 
     @user.comments << @comment
     @user.moderated_comments << @moderated_comment
+    @user.save
+    @user.reload
     @other_user = User.create!(:name => "Bill")
   end
 
@@ -56,9 +57,11 @@ describe Mongoid::Denormalize do
     
     it "should update denormalized values if attribute is changed" do
       @user.update_attributes(:name => "Bob Doe", :location => [4, 4])
-      
+
+      @post.reload #needed for old versions of Mongoid
       @post.user_location.should eql @user.location
-      
+
+      @comment.reload #needed for old versions of Mongoid
       @comment.user_name.should eql @user.name
     end
     
@@ -77,14 +80,16 @@ describe Mongoid::Denormalize do
     it "should push denormalized fields to one-to-one association" do
       @user.name = "Elvis"
       @user.save!
-      
+
+      @post.reload #needed for old versions of Mongoid
       @post.user_name.should eql "Elvis"
     end
     
     it "should push denormalized fields to one-to-many association" do
       @post.created_at = Time.parse("Jan 1 2011 12:00")
       @post.save!
-      
+
+      @comment.reload #needed for old versions of Mongoid
       @comment.post_created_at.should eql Time.parse("Jan 1 2011 12:00")
     end
 
@@ -92,6 +97,7 @@ describe Mongoid::Denormalize do
       @user.update_attributes(:name => "Bob Doe", :email => "bob@doe.com")
       @user.save!
 
+      @article.reload #needed for old versions of Mongoid
       @article.author_name.should eql "Bob Doe"
       @article.author_email.should eql "bob@doe.com"
     end
@@ -112,8 +118,15 @@ describe Mongoid::Denormalize do
   
   context "rake task" do
     it "should correct inconsistent denormalizations on regular documents" do
-      Post.collection.update({ '_id' => @post.id }, { '$set' => { 'user_name' => 'Clint Eastwood' } })
-      
+      if ::Mongoid::VERSION < '3'
+        Post.collection.update({ '_id' => @post.id }, { '$set' => { 'user_name' => 'Clint Eastwood' } })
+      else
+        @post.set(:user_name, 'Clint Eastwood')
+      end
+
+      @post.reload #needed for old versions of Mongoid
+      @post.user_name.should eq 'Clint Eastwood'
+
       Rake::Task["db:denormalize"].invoke
       Rake::Task["db:denormalize"].reenable
       
