@@ -143,7 +143,7 @@ So, if User has_many :posts and User has_many :comments, but Comments are embedd
 Contributing
 -------
 
-Clone the repository and run Bundler with `bundle install` so that you can run the rake tasks.
+Clone the repository and run Bundler with `bundle install`. Use `rake -T` to view available rake tasks.
 
 Contributors
 -------

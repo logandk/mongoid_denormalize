@@ -8,7 +8,7 @@ class User
   field :location, :type => Array
 
   has_one :post
-  has_many :comments
+  has_many :comments, :inverse_of => :user
   has_many :moderated_comments, :class_name => "Comment", :inverse_of => :moderator
   has_many :articles, :inverse_of => :author
 

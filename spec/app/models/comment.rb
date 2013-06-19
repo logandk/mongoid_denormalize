@@ -5,7 +5,7 @@ class Comment
   field :body
   
   belongs_to :post, :inverse_of => :comments
-  belongs_to :user
+  belongs_to :user, :inverse_of => :comments
   belongs_to :moderator, :class_name => "User", :inverse_of => :moderated_comments
 
   attr_accessible :body, :user, :moderator
