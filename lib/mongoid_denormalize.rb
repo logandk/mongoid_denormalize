@@ -1,3 +1,4 @@
+require 'mongoid_denormalize/version'
 require File.dirname(__FILE__) + '/railties/railtie' if defined?(Rails::Railtie)
 
 # = Mongoid::Denormalize
@@ -103,7 +104,8 @@ module Mongoid::Denormalize
 
   def assign_and_save(obj, assignments, prefix)
     attributes_hash = Hash[assignments.collect do |assignment|
-      if self.changed_attributes.has_key?(assignment[:source_field])
+      if self.changed_attributes.has_key?(assignment[:source_field].to_s) ||
+          self.changed_attributes.has_key?(assignment[:source_field].to_sym)
         ["#{prefix}_#{assignment[:source_field]}", assignment[:value]]
       end
     end]
@@ -111,7 +113,7 @@ module Mongoid::Denormalize
     unless attributes_hash.empty?
       # The more succinct update_attributes(changes, :without_protection => true) requires Mongoid 3.0.0, 
       # but we only require 2.1.9
-      obj.assign_attributes(attributes_hash, :without_protection => true)
+      obj.write_attributes(attributes_hash, false)
       obj.save(:validate => false)
     end
   end
