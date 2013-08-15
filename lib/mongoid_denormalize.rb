@@ -103,12 +103,12 @@ module Mongoid::Denormalize
   end
 
   def assign_and_save(obj, assignments, prefix)
-    attributes_hash = Hash[assignments.collect do |assignment|
+    attributes_hash = Hash[assignments.collect { |assignment|
       if self.changed_attributes.has_key?(assignment[:source_field].to_s) ||
           self.changed_attributes.has_key?(assignment[:source_field].to_sym)
         ["#{prefix}_#{assignment[:source_field]}", assignment[:value]]
       end
-    end]
+    }.compact]
     
     unless attributes_hash.empty?
       # The more succinct update_attributes(changes, :without_protection => true) requires Mongoid 3.0.0, 
