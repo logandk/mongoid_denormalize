@@ -29,12 +29,12 @@ module Mongoid::Denormalize
     #   end
     def denormalize(*args)
       *fields, options = args
-      
+
       (self.denormalize_definitions ||= []) << { :fields => fields, :options => options }
 
       # Define schema
       unless options[:to]
-        fields.each { |name| field "#{options[:from]}_#{name}", :type => options[:type] || String }
+        fields.each { |name| field "#{options[:from]}_#{name}", :as => "#{name}", :type => options[:type] || String }
       end
     end
 
@@ -111,9 +111,7 @@ module Mongoid::Denormalize
     }.compact]
     
     unless attributes_hash.empty?
-      # The more succinct update_attributes(changes, :without_protection => true) requires Mongoid 3.0.0, 
-      # but we only require 2.1.9
-      obj.write_attributes(attributes_hash, false)
+      obj.update_attributes(attributes_hash)
       obj.save(:validate => false)
     end
   end

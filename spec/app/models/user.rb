@@ -13,6 +13,6 @@ class User
   has_many :articles, :inverse_of => :author
 
   denormalize :name, :email, :location, :to => [:post, :comments]
-  denormalize :nickname, :to => :moderated_comments, :as => :mod
+  denormalize :nickname, :to => :moderated_comments
   denormalize :name, :email, :to => :articles
 end
