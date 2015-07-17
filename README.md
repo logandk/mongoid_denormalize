@@ -91,6 +91,7 @@ the parent. When using the `:to` option, the parent will push the values to its 
     # With custom field name prefix. Will set the commenter_name attribute of "self.comments" (takes precedence over
     # inverse_of).
     denormalize :name, :to => :comments, :as => :commenter
+    denormalize :name, :from => :comments, :as => :commenter
 
     # Basic denormalization. Will set the user_name attribute with the associated user's name.
     denormalize :name, :from => :user

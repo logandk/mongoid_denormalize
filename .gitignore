@@ -3,3 +3,4 @@ pkg
 /*.gem
 .idea
 *.iml
+tmp/
