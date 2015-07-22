@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.description = %q{Helper module for denormalizing association attributes in Mongoid models.}
   s.summary = %q{Mongoid denormalization helper.}
   s.email = 'logan@logan.dk'
+  s.license = 'MIT'
   s.extra_rdoc_files = [
     'LICENSE',
     'README.md'
