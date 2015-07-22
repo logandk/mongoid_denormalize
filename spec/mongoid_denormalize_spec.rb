@@ -118,11 +118,7 @@ describe Mongoid::Denormalize do
   
   context "rake task" do
     it "should correct inconsistent denormalizations on regular documents" do
-      if ::Mongoid::VERSION < '3'
-        Post.collection.update({ '_id' => @post.id }, { '$set' => { 'user_name' => 'Clint Eastwood' } })
-      else
-        @post.set(:user_name, 'Clint Eastwood')
-      end
+      @post.set(:user_name => 'Clint Eastwood')
 
       @post.reload #needed for old versions of Mongoid
       @post.user_name.should eq 'Clint Eastwood'

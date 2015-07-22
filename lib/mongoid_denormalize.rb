@@ -34,7 +34,10 @@ module Mongoid::Denormalize
 
       # Define schema
       unless options[:to]
-        fields.each { |name| field "#{options[:from]}_#{name}", :type => options[:type] || String }
+        prefix = options[:as] || options[:from]
+        fields.each do |name|
+          field "#{prefix}_#{name}", :type => options[:type] || String
+        end
       end
     end
 
@@ -57,11 +60,12 @@ module Mongoid::Denormalize
     Array(self.denormalize_definitions).reject do |definition|
       definition[:options][:to]
     end.each do |definition|
-      definition[:fields].each do |name|
-        field = definition[:options][:from]
+      definition[:fields].each do |field|
+        association = definition[:options][:from]
+        prefix = definition[:options][:as] || definition[:options][:from]
         # force reload if :from method is an association ; call it normally otherwise
-        associated =  self.class.reflect_on_association(field) ? self.send(field, true) : self.send(field)
-        self.send("#{field}_#{name}=", associated.try(name))
+        associated =  self.class.reflect_on_association(association) ? self.send(association, true) : self.send(association)
+        self.send("#{prefix}_#{field}=", associated.try(field))
       end
     end
   end
@@ -111,10 +115,7 @@ module Mongoid::Denormalize
     }.compact]
     
     unless attributes_hash.empty?
-      # The more succinct update_attributes(changes, :without_protection => true) requires Mongoid 3.0.0, 
-      # but we only require 2.1.9
-      obj.write_attributes(attributes_hash, false)
-      obj.save(:validate => false)
+      obj.update_attributes(attributes_hash)
     end
   end
 end
