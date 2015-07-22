@@ -9,7 +9,6 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new('>= 0') if s.respond_to? :required_rubygems_version=
   s.authors = ['Logan Raarup']
-  s.date = '2013-06-19'
   s.description = %q{Helper module for denormalizing association attributes in Mongoid models.}
   s.summary = %q{Mongoid denormalization helper.}
   s.email = 'logan@logan.dk'
