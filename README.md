@@ -146,6 +146,12 @@ Contributing
 
 Clone the repository and run Bundler with `bundle install`. Use `rake -T` to view available rake tasks.
 
+You can also use `bundle exec guard` for test driven development, if desired.
+
+A MongoDB server is required to run the specs. Docker is an easy option:
+
+    docker run --name mongo3 -d -p 27017:27017 mongo
+
 Contributors
 -------
 * hubsmoke (https://github.com/hubsmoke)
@@ -154,7 +160,7 @@ Contributors
 * Isaac Cambron (https://github.com/icambron)
 * Shannon Carey (https://github.com/rehevkor5)
 * Sebastien Azimi (https://github.com/suruja)
-
+* HuffMoody (https://github.com/HuffMoody)
 
 Credits
 -------

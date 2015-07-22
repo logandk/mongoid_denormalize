@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mongoid_denormalize (0.4.2)
+    mongoid_denormalize (1.0.0)
       mongoid (>= 4.0.0)
 
 GEM
@@ -23,6 +23,7 @@ GEM
     database_cleaner (1.0.1)
     diff-lcs (1.2.4)
     ffi (1.9.0)
+    ffi (1.9.0-x86-mingw32)
     formatador (0.2.4)
     guard (1.8.1)
       formatador (>= 0.2.4)
@@ -57,6 +58,11 @@ GEM
       coderay (~> 1.0.5)
       method_source (~> 0.8)
       slop (~> 3.4)
+    pry (0.9.12.2-x86-mingw32)
+      coderay (~> 1.0.5)
+      method_source (~> 0.8)
+      slop (~> 3.4)
+      win32console (~> 1.3)
     rake (10.0.4)
     rb-fsevent (0.9.3)
     rb-inotify (0.9.0)
@@ -76,9 +82,12 @@ GEM
     thread_safe (0.3.5)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
+    wdm (0.1.1)
+    win32console (1.3.2-x86-mingw32)
 
 PLATFORMS
   ruby
+  x86-mingw32
 
 DEPENDENCIES
   database_cleaner
@@ -86,3 +95,7 @@ DEPENDENCIES
   mongoid_denormalize!
   rake
   rspec
+  wdm (>= 0.1.0)
+
+BUNDLED WITH
+   1.10.5
