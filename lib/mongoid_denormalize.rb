@@ -98,7 +98,7 @@ module Mongoid::Denormalize
             assign_and_save(associated, assignments, prefix)
           end
         else
-          associated.to_a.each { |c| assign_and_save(c, assignments, prefix) }
+          assign_and_save_many(associated, assignments, prefix)
         end
         
         reflect.klass.set_callback(:save, :before, :denormalize_from) if reflect.klass.try(:is_denormalized?)
@@ -107,15 +107,27 @@ module Mongoid::Denormalize
   end
 
   def assign_and_save(obj, assignments, prefix)
-    attributes_hash = Hash[assignments.collect { |assignment|
+    attributes_hash = build_attributes_hash(assignments, prefix)
+    
+    unless attributes_hash.empty?
+      obj.update_attributes(attributes_hash)
+    end
+  end
+
+  def assign_and_save_many(objs, assignments, prefix)
+    attributes_hash = build_attributes_hash(assignments, prefix)
+
+    unless attributes_hash.empty?
+      objs.update_all(attributes_hash)
+    end
+  end
+
+  def build_attributes_hash(assignments, prefix)
+    Hash[assignments.collect { |assignment|
       if self.changed_attributes.has_key?(assignment[:source_field].to_s) ||
           self.changed_attributes.has_key?(assignment[:source_field].to_sym)
         ["#{prefix}_#{assignment[:source_field]}", assignment[:value]]
       end
     }.compact]
-    
-    unless attributes_hash.empty?
-      obj.update_attributes(attributes_hash)
-    end
   end
 end
